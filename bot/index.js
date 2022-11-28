@@ -1,29 +1,22 @@
 const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, Events } = require('discord.js');
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.MessageContent] });
-const http = require('http');
 const moment = require('moment');
 require('dotenv').config()
 const logger = require('npmlog');
-const database = require('./database')
-const bot = require('./bot')
-
-logger.info('Starting Client...');
-
-database.readGuildConfig("fuck");
-database.fuck("Bruh");
+const database = require('../database')
 
 client.on('ready', () => {
 	logger.info(`[BOT] Logged in as ${client.user.tag}!`);
 });
 
 client.on("guildCreate", guild => {
-    console.log("Joined a new guild: " + guild.name);
-    //Your other stuff like adding to guildArray
+	console.log("Joined a new guild: " + guild.name);
+	//Your other stuff like adding to guildArray
 })
 
 client.on("guildDelete", guild => {
-    console.log("Left a guild: " + guild.name);
-    //remove from guildArray
+	console.log("Left a guild: " + guild.name);
+	//remove from guildArray
 })
 
 client.on('interactionCreate', async (interaction) => {
@@ -46,10 +39,10 @@ client.on('interactionCreate', async (interaction) => {
 		const timeEmbed = new EmbedBuilder()
 			.setColor(0x8C82FF)
 			.setTitle('Time Information')
-			.setAuthor({ name: "Slimer's Bot"})
+			.setAuthor({ name: "Slimer's Bot" })
 			.addFields({ name: 'Current Server Time', value: moment().format('MMMM Do YYYY, h:mm:ss a'), inline: true })
 			.setTimestamp()
-			.setFooter({ text: 'Sent by A Trash Bot'});
+			.setFooter({ text: 'Sent by A Trash Bot' });
 		await interaction.reply({ embeds: [timeEmbed] });
 	}
 
@@ -71,28 +64,33 @@ client.on('interactionCreate', async (interaction) => {
 		await interaction.reply({ content: 'I think you should,', components: [row] });
 	}
 
-	
+
 });
 
 client.on('messageCreate', async (message) => {
 	console.log(message.content);
 });
 
-// Serious Keep-Alive Code
-http.createServer(function (req, res) {
-	res.writeHead(200, {'Content-Type': 'text/plain'});
-	res.write('hello~');
-	res.end();
-  }).listen(process.env.HTTP_PORT);
+function connectBot(token) {
 
-client.login(process.env.BOT_TOKEN);
+	try {
+		client.login(token);
+		logger.info('Successfully connected')
+	} catch (err) {
+		console.log(err);
+	}
 
-logger.info("Successfully Initialized")
+}
+function disconnectBot() {
+	try {
+		client.destroy();
+		logger.info('Successfully disconnected')
+	} catch (err) {
+		console.log(err);
+	}
+}
 
-
-
-
-module.exports = null;
-module.exports.connect = null;
-module.exports.disconnect = null;
-module.exports.execute = null;
+module.exports = {
+	connect: connectBot,
+	disconnect: disconnectBot,
+}

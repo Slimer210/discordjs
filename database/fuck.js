@@ -1,1 +1,5 @@
-module.exports = console.log("fuck it")
+
+function fuckIt() {
+    console.log("fuck it")
+}
+module.exports = fuckIt;
