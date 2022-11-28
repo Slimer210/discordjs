@@ -1,0 +1,1 @@
+source /home/slimerde/nodevenv/discord.api.slimer.dev/16/bin/activate && cd /home/slimerde/discord.api.slimer.dev && node keepalive.js

@@ -1,0 +1,19 @@
+{
+  "name": "discord-werewolf",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "register": "node register.js",
+    "bot": "node bot.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.6.0",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "loglevel": "^1.8.1",
+    "moment": "^2.29.4",
+    "mongodb": "^4.12.1",
+    "nodemon": "^2.0.20",
+    "npmlog": "^7.0.1"
+  }
+}
