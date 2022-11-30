@@ -1,21 +1,60 @@
-const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, Events } = require('discord.js');
+const { Client, GatewayIntentBits, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, Collection, REST, Routes } = require('discord.js');
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.MessageContent] });
 const moment = require('moment');
 require('dotenv').config()
 const logger = require('npmlog');
 const database = require('../database')
+const fs = require('node:fs');
+const path = require('node:path');
+
+function registerCommand(token, appid) {
+	const commands = [];
+	// Grab all the command files from the commands directory you created earlier
+	const commandFiles = fs.readdirSync('./bot/commands').filter(file => file.endsWith('.js'));
+
+	// Grab the SlashCommandBuilder#toJSON() output of each command's data for deployment
+	for (const file of commandFiles) {
+		const command = require(`./commands/${file}`);
+		commands.push(command.data.toJSON());
+	}
+
+	// Construct and prepare an instance of the REST module
+	const rest = new REST({ version: '10' }).setToken(token);
+
+	// and deploy your commands!
+	(async () => {
+		try {
+			console.log(`Started refreshing ${commands.length} application (/) commands.`);
+
+			// The put method is used to fully refresh all commands in the guild with the current set
+			const data = await rest.put(
+				Routes.applicationCommands(appid),
+				{ body: commands },
+			);
+
+			console.log(`Successfully reloaded ${data.length} application (/) commands.`);
+		} catch (error) {
+			console.error(error);
+		}
+	})();
+}
 
 client.on('ready', () => {
 	logger.info(`[BOT] Logged in as ${client.user.tag}!`);
+	database.connect();
 });
 
 client.on("guildCreate", guild => {
-	console.log("Joined a new guild: " + guild.name);
+	logger.warn("Bot added to guild: " + guild.name);
+	const channel = guild.channels.cache.find(channel => channel.type === 'text' && channel.permissionsFor(guild.me).has('SEND_MESSAGES'))
+	console.log(channel)
+	channel.send("Thanks for invite me")
+	database.readGuildConfig(guild.id);
 	//Your other stuff like adding to guildArray
 })
 
 client.on("guildDelete", guild => {
-	console.log("Left a guild: " + guild.name);
+	logger.warn("Bot removed from guild: " + guild.name);
 	//remove from guildArray
 })
 
@@ -23,12 +62,15 @@ client.on('interactionCreate', async (interaction) => {
 	if (interaction.isButton()) {
 		await interaction.reply("lol");
 	}
-	if (!interaction.isChatInputCommand()) return;
-
-	if (interaction.commandName === 'ping') {
+	if (interaction.isChatInputCommand()) {
 		console.log(interaction.user.tag + " use command: " + interaction.commandName)
-		await interaction.reply('Pong!');
 	}
+
+	// if (interaction.commandName === 'ping') {
+	// 	console.log(interaction.user.tag + " use command: " + interaction.commandName)
+
+	// 	await interaction.reply('Pong!');
+	// }
 
 	if (interaction.commandName === 'kill') {
 		await interaction.reply('Server is down');
@@ -71,8 +113,8 @@ client.on('messageCreate', async (message) => {
 	console.log(message.content);
 });
 
-function connectBot(token) {
-
+function connectBot(token, appid) {
+	registerCommand(token, appid);
 	try {
 		client.login(token);
 		logger.info('Successfully connected')
@@ -93,4 +135,4 @@ function disconnectBot() {
 module.exports = {
 	connect: connectBot,
 	disconnect: disconnectBot,
-}
+};
